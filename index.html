@@ -255,7 +255,11 @@
   // ── ЗАГРУЗКА ДАННЫХ ─────────────────────────
   function loadAll() {
     document.getElementById('statusBar').textContent = 'Обновляем...';
-    fetch(API_URL + '?mode=json')
+    // Apps Script требует следования редиректам
+    fetch(API_URL + '?mode=json', {
+      redirect: 'follow',
+      method: 'GET'
+    })
       .then(function(r) { return r.json(); })
       .then(function(data) {
         todayData = data.today;
