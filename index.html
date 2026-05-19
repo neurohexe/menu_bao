@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Меню</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1C4587">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Меню">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    :root {
+      --navy:  #1C4587;
+      --blue:  #4A86E8;
+      --green: #2E7D32;
+      --bg:    #F4F6FA;
+      --white: #FFFFFF;
+      --brd:   #D0D8E8;
+      --text:  #1E2A3A;
+      --muted: #64748B;
+      --act:   #E8F0FE;
+    }
+    html,body { height:100%; background:var(--bg);
+      font-family:'Segoe UI',Arial,sans-serif; color:var(--text); }
+
+    /* ── ШАПКА ── */
+    .header {
+      background:var(--navy); color:#fff;
+      padding:10px 16px;
+      display:flex; align-items:center; justify-content:space-between;
+      position:sticky; top:0; z-index:20;
+      box-shadow:0 2px 8px rgba(0,0,0,.2);
+    }
+    .h-left { display:flex; align-items:baseline; gap:10px; }
+    .h-day  { font-size:20px; font-weight:700; }
+    .h-date { font-size:13px; opacity:.7; }
+    .h-right { display:flex; align-items:center; gap:8px; }
+    .h-clock  { font-size:22px; font-weight:300; letter-spacing:2px; }
+    .h-office { font-size:10px; opacity:.6; max-width:110px;
+                white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .btn-hdr {
+      background:rgba(255,255,255,.15); color:#fff;
+      border:1px solid rgba(255,255,255,.3);
+      border-radius:6px; padding:4px 10px; font-size:12px; cursor:pointer;
+    }
+    .btn-install { display:none; }
+
+    /* ── ВКЛАДКИ ── */
+    .tabs {
+      display:flex; background:var(--navy);
+      border-top:1px solid rgba(255,255,255,.15);
+    }
+    .tab {
+      flex:1; text-align:center; padding:8px 4px;
+      font-size:13px; font-weight:500; color:rgba(255,255,255,.6);
+      cursor:pointer; border-bottom:3px solid transparent;
+    }
+    .tab.active { color:#fff; border-bottom-color:#fff; }
+
+    /* ── КОНТЕНТ ── */
+    .panel { display:none; padding:14px 14px 20px; }
+    .panel.active { display:block; }
+
+    /* ── РАСПИСАНИЕ ── */
+    .sec-title {
+      font-size:11px; font-weight:600; text-transform:uppercase;
+      letter-spacing:1px; color:var(--muted); margin:0 0 8px;
+    }
+    .schedule {
+      width:100%; border-collapse:collapse;
+      background:var(--white); border-radius:12px; overflow:hidden;
+      box-shadow:0 1px 6px rgba(0,0,0,.07); margin-bottom:14px;
+    }
+    .schedule thead th {
+      background:var(--navy); color:#fff; font-size:11px;
+      font-weight:600; text-transform:uppercase; letter-spacing:.5px;
+      padding:8px 12px; text-align:left;
+    }
+    .schedule thead th:first-child { width:130px; }
+    .schedule tbody tr { border-bottom:1px solid var(--brd); }
+    .schedule tbody tr:last-child { border-bottom:none; }
+    .schedule tbody tr.past { opacity:.4; background:#F8F9FA; }
+    .schedule tbody tr.now  { background:var(--act); }
+    .schedule tbody tr.now td { color:var(--navy); }
+    .schedule td { padding:10px 12px; font-size:13px; vertical-align:middle; }
+    .td-time { font-weight:700; color:var(--navy); white-space:nowrap; }
+    .now .td-time { color:var(--blue); }
+    .now-pill {
+      display:none; background:var(--blue); color:#fff;
+      font-size:9px; font-weight:700; border-radius:6px;
+      padding:1px 6px; margin-left:5px; vertical-align:middle;
+    }
+    .now .now-pill { display:inline-block; }
+
+    /* ── КРУГЛОСУТОЧНО ── */
+    .always {
+      background:var(--white); border-left:4px solid var(--green);
+      border-radius:10px; padding:12px 14px;
+      box-shadow:0 1px 5px rgba(0,0,0,.06);
+    }
+    .always-lbl {
+      font-size:10px; font-weight:700; text-transform:uppercase;
+      letter-spacing:1px; color:var(--green); margin-bottom:8px;
+    }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; }
+    .chip {
+      background:#E8F5E9; color:var(--green);
+      border-radius:16px; padding:4px 11px; font-size:12px; font-weight:500;
+    }
+
+    /* ── НЕДЕЛЯ ── */
+    .week-day {
+      background:var(--white); border-radius:12px; overflow:hidden;
+      box-shadow:0 1px 6px rgba(0,0,0,.07); margin-bottom:12px;
+    }
+    .wday-hdr {
+      display:flex; align-items:center; justify-content:space-between;
+      padding:10px 14px; cursor:pointer;
+      background:#F1F5FB; border-bottom:1px solid var(--brd);
+    }
+    .week-day.today .wday-hdr { background:var(--act); }
+    .wday-name { font-size:14px; font-weight:700; color:var(--navy); }
+    .week-day.today .wday-name { color:var(--blue); }
+    .wday-date { font-size:12px; color:var(--muted); }
+    .today-badge {
+      background:var(--blue); color:#fff;
+      font-size:10px; font-weight:700;
+      border-radius:8px; padding:2px 8px;
+    }
+    .wday-body { display:none; padding:10px 14px; }
+    .week-day.open .wday-body { display:block; }
+    .chevron { font-size:12px; color:var(--muted); transition:transform .2s; }
+    .week-day.open .chevron { transform:rotate(180deg); }
+
+    .mini-table { width:100%; border-collapse:collapse; font-size:12px; margin-bottom:10px; }
+    .mini-table td { padding:5px 8px; border-bottom:1px solid var(--brd); vertical-align:top; }
+    .mini-table tr:last-child td { border-bottom:none; }
+    .mt-time { font-weight:700; white-space:nowrap; color:var(--navy); width:110px; }
+
+    /* ── ПУСТО / ЗАГРУЗКА ── */
+    .empty { text-align:center; padding:50px 16px; color:var(--muted); }
+    .empty .ico { font-size:44px; margin-bottom:12px; }
+    .empty .ttl { font-size:16px; font-weight:600; color:var(--text); margin-bottom:5px; }
+    .spin {
+      width:32px; height:32px; margin:0 auto 12px;
+      border:3px solid var(--brd); border-top-color:var(--blue);
+      border-radius:50%; animation:spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .status-bar {
+      text-align:center; font-size:11px; color:var(--muted);
+      padding:4px; background:var(--bg);
+    }
+
+    /* PWA standalone — скрываем status bar */
+    @media (display-mode: standalone) {
+      .status-bar { display:none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ШАПКА -->
+<div class="header">
+  <div class="h-left">
+    <span class="h-day" id="hDay">—</span>
+    <span class="h-date" id="hDate">—</span>
+  </div>
+  <div class="h-right">
+    <div>
+      <div class="h-clock" id="hClock">—:—</div>
+      <div class="h-office" id="hOffice"></div>
+    </div>
+    <button class="btn-hdr" onclick="loadAll()">↻</button>
+    <button class="btn-hdr btn-install" id="btnInstall" onclick="installPWA()">⬇ Установить</button>
+  </div>
+</div>
+
+<!-- ВКЛАДКИ -->
+<div class="tabs">
+  <div class="tab active" id="tab-today" onclick="switchTab('today')">📅 Сегодня</div>
+  <div class="tab"        id="tab-week"  onclick="switchTab('week')">🗓 Вся неделя</div>
+</div>
+
+<!-- ПАНЕЛИ -->
+<div class="panel active" id="panel-today">
+  <div class="empty"><div class="spin"></div>Загружаем меню...</div>
+</div>
+<div class="panel" id="panel-week">
+  <div class="empty"><div class="spin"></div>Загружаем...</div>
+</div>
+
+<div class="status-bar" id="statusBar">Обновление...</div>
+
+<script>
+  // !! ЗАМЕНИТЕ НА ВАШ URL Apps Script !!
+  // Формат: https://script.google.com/macros/s/XXXXXX/exec
+  const API_URL = 'ВСТАВЬТЕ_СЮДА_URL_ВАШЕГО_APPS_SCRIPT';
+
+  const MONTHS = ['января','февраля','марта','апреля','мая','июня',
+                  'июля','августа','сентября','октября','ноября','декабря'];
+  let todayData = null;
+  let weekData  = null;
+  let installPrompt = null;
+
+  // ── ЧАСЫ ────────────────────────────────────
+  function tick() {
+    const n = new Date();
+    document.getElementById('hClock').textContent = pad(n.getHours()) + ':' + pad(n.getMinutes());
+    document.getElementById('hDay').textContent   = dayName(n);
+    document.getElementById('hDate').textContent  = n.getDate() + ' ' + MONTHS[n.getMonth()];
+    if (todayData) highlightRow();
+  }
+  function pad(x) { return String(x).padStart(2,'0'); }
+  function dayName(d) {
+    return ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'][d.getDay()];
+  }
+  setInterval(tick, 30000);
+  tick();
+
+  // ── PWA УСТАНОВКА ───────────────────────────
+  window.addEventListener('beforeinstallprompt', function(e) {
+    e.preventDefault();
+    installPrompt = e;
+    document.getElementById('btnInstall').style.display = 'inline-block';
+  });
+  window.addEventListener('appinstalled', function() {
+    document.getElementById('btnInstall').style.display = 'none';
+    installPrompt = null;
+  });
+  function installPWA() {
+    if (installPrompt) {
+      installPrompt.prompt();
+      installPrompt.userChoice.then(function() {
+        installPrompt = null;
+        document.getElementById('btnInstall').style.display = 'none';
+      });
+    }
+  }
+
+  // ── ВКЛАДКИ ─────────────────────────────────
+  function switchTab(id) {
+    ['today','week'].forEach(function(t) {
+      document.getElementById('tab-'   + t).classList.toggle('active', t === id);
+      document.getElementById('panel-' + t).classList.toggle('active', t === id);
+    });
+  }
+
+  // ── ЗАГРУЗКА ДАННЫХ ─────────────────────────
+  function loadAll() {
+    document.getElementById('statusBar').textContent = 'Обновляем...';
+    fetch(API_URL + '?mode=json')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        todayData = data.today;
+        weekData  = data.week;
+        renderToday(data.today);
+        renderWeek(data.week);
+        const n = new Date();
+        document.getElementById('statusBar').textContent =
+          'Обновлено в ' + pad(n.getHours()) + ':' + pad(n.getMinutes());
+        if (data.today && data.today.officeName)
+          document.getElementById('hOffice').textContent = data.today.officeName;
+      })
+      .catch(function(e) {
+        document.getElementById('statusBar').textContent = 'Ошибка загрузки';
+        document.getElementById('panel-today').innerHTML =
+          empty('⚠️','Не удалось загрузить меню',
+                'Проверьте подключение к интернету');
+      });
+  }
+
+  // ── РЕНДЕР "СЕГОДНЯ" ────────────────────────
+  function renderToday(d) {
+    const p = document.getElementById('panel-today');
+    if (!d || (!d.timings.length && !d.alwaysOn.length)) {
+      p.innerHTML = empty('📋','На сегодня меню не задано',
+                          'Создайте меню через конструктор в таблице');
+      return;
+    }
+    let html = '';
+    if (d.timings.length) {
+      html += '<p class="sec-title">Расписание выкладки</p>';
+      html += '<table class="schedule"><thead><tr>' +
+              '<th>Время</th><th>Что выкладываем</th>' +
+              '</tr></thead><tbody>';
+      d.timings.forEach(function(t) {
+        html += '<tr class="tr-row" data-time="' + esc(t.time) + '">' +
+          '<td class="td-time">' + esc(t.time) +
+            '<span class="now-pill">Сейчас</span></td>' +
+          '<td>' + t.items.map(esc).join('<span style="color:var(--brd);margin:0 4px">·</span>') +
+          '</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+    if (d.alwaysOn.length) {
+      html += '<div class="always"><div class="always-lbl">☕ Круглосуточно стоит</div>' +
+              '<div class="chips">';
+      d.alwaysOn.forEach(function(v) { html += '<div class="chip">' + esc(v) + '</div>'; });
+      html += '</div></div>';
+    }
+    p.innerHTML = html;
+    highlightRow();
+  }
+
+  // ── РЕНДЕР "НЕДЕЛЯ" ─────────────────────────
+  function renderWeek(d) {
+    const p = document.getElementById('panel-week');
+    if (!d || !d.days || !d.days.length) {
+      p.innerHTML = empty('🗓','Меню на неделю не найдено','');
+      return;
+    }
+    let html = '';
+    d.days.forEach(function(day, idx) {
+      html += '<div class="week-day' + (day.isToday ? ' today open' : '') +
+              '" id="wday-' + idx + '">';
+      html += '<div class="wday-hdr" onclick="toggleDay(' + idx + ')">' +
+        '<div><span class="wday-name">' + esc(day.dayName) + '</span>' +
+        ' <span class="wday-date">' + esc(day.dayDate) + '</span></div>' +
+        '<div style="display:flex;align-items:center;gap:8px">' +
+        (day.isToday ? '<span class="today-badge">Сегодня</span>' : '') +
+        '<span class="chevron">▼</span></div></div>';
+      html += '<div class="wday-body">';
+      if (day.timings.length) {
+        html += '<table class="mini-table">';
+        day.timings.forEach(function(t) {
+          html += '<tr><td class="mt-time">' + esc(t.time) + '</td><td>' +
+                  t.items.map(esc).join(' · ') + '</td></tr>';
+        });
+        html += '</table>';
+      }
+      if (day.alwaysOn && day.alwaysOn.length) {
+        html += '<div class="always-lbl" style="margin:8px 0 5px">☕ Круглосуточно</div>' +
+                '<div class="chips">';
+        day.alwaysOn.forEach(function(v) { html += '<div class="chip">' + esc(v) + '</div>'; });
+        html += '</div>';
+      }
+      html += '</div></div>';
+    });
+    p.innerHTML = html;
+    const todayEl = document.querySelector('.week-day.today');
+    if (todayEl) setTimeout(function() {
+      todayEl.scrollIntoView({ behavior:'smooth', block:'start' });
+    }, 300);
+  }
+
+  function toggleDay(idx) {
+    const el = document.getElementById('wday-' + idx);
+    if (el) el.classList.toggle('open');
+  }
+
+  // ── ПОДСВЕТКА ТЕКУЩЕГО ───────────────────────
+  function highlightRow() {
+    if (!todayData || !todayData.timings) return;
+    const nowM = new Date().getHours() * 60 + new Date().getMinutes();
+    document.querySelectorAll('.tr-row').forEach(function(tr, i) {
+      tr.classList.remove('now','past');
+      const t = todayData.timings[i];
+      if (!t) return;
+      const r = parseRange(t.time);
+      if (!r) return;
+      if (nowM >= r.from && nowM < r.to) {
+        tr.classList.add('now');
+        tr.scrollIntoView({ behavior:'smooth', block:'nearest' });
+      } else if (nowM >= r.to) {
+        tr.classList.add('past');
+      }
+    });
+  }
+
+  function parseRange(str) {
+    const m = str.match(/(\d{1,2}):(\d{2})\s*[-–—]\s*(?:(\d{1,2}):(\d{2}))?/);
+    if (!m) return null;
+    return { from: +m[1]*60 + +m[2], to: m[3] ? +m[3]*60 + +m[4] : +m[1]*60 + +m[2] + 600 };
+  }
+
+  function empty(ico, ttl, sub) {
+    return '<div class="empty"><div class="ico">' + ico + '</div>' +
+           '<div class="ttl">' + ttl + '</div><div>' + sub + '</div></div>';
+  }
+  function esc(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                        .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ── SERVICE WORKER ──────────────────────────
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js')
+      .then(function() { console.log('SW зарегистрирован'); })
+      .catch(function(e) { console.log('SW ошибка:', e); });
+  }
+
+  // ── СТАРТ ───────────────────────────────────
+  loadAll();
+  setInterval(loadAll, 10 * 60 * 1000);
+</script>
+</body>
+</html>
