@@ -1,10 +1,8 @@
 // ============================================
 // SERVICE WORKER
 // sw.js
-// Кэширует страницу для работы офлайн
-// ============================================
 
-const CACHE_NAME = 'menu-cache-v1';
+const CACHE_NAME = 'menu-cache-v2';
 const ASSETS = [
   '/',
   '/index.html',
